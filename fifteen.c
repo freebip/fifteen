@@ -86,7 +86,7 @@ void print_digits(int value, int x, int y, int spacing)
         int mm = max == 0 ? 0 : value / max;
 
         get_res_params(ELF_INDEX_SELF, mm, &res_params);
-        show_elf_res_by_id(0, mm, x, y);
+        show_elf_res_by_id(ELF_INDEX_SELF, mm, x, y);
         x += res_params.width + spacing;
         if (max == 0)
             break;
@@ -130,52 +130,94 @@ void show_screen(void* p)
     set_display_state_value(2, 0);
 }
 
+int get_zero_index()
+{
+    for (int i = 0; i < 16; i++)
+        if (!appdata->board[i])
+            return i;
+    return -1;
+}
+
 int dispatch_screen(void* p)
 {
-    struct gesture_* gest = (struct gesture_*)p;
+    int x, y, index;
 
-    if (gest->gesture != GESTURE_CLICK)
-        return 0;
+    struct gesture_* gest = (struct gesture_*)p;
 
     if (appdata->is_win)
     {
         init_board();
     }
-    else 
+    else
     {
-        int x = gest->touch_pos_x / 44;
-        int y = gest->touch_pos_y / 44;
+        index = get_zero_index();
 
-        if (appdata->board[4 * y + x])
+        switch (gest->gesture)
         {
-            int index = -1;
-            if (x > 0 && !appdata->board[4 * y + x - 1])
-                index = 4 * y + x - 1;
-            else if (x < 4 && !appdata->board[4 * y + x + 1])
-                index = 4 * y + x + 1;
-            else if (y > 0 && !appdata->board[4 * (y - 1) + x])
-                index = 4 * (y - 1) + x;
-            else if (y < 4 && !appdata->board[4 * (y + 1) + x])
-                index = 4 * (y + 1) + x;
+        case GESTURE_CLICK:
+            x = gest->touch_pos_x / 44;
+            y = gest->touch_pos_y / 44;
 
-            if (index != -1)
+            if (appdata->board[4 * y + x])
             {
-                appdata->board[index] = appdata->board[4 * y + x];
-                appdata->board[4 * y + x] = 0;
-            }
-        
-            // check win
+                int index = -1;
+                if (x > 0 && !appdata->board[4 * y + x - 1])
+                    index = 4 * y + x - 1;
+                else if (x < 4 && !appdata->board[4 * y + x + 1])
+                    index = 4 * y + x + 1;
+                else if (y > 0 && !appdata->board[4 * (y - 1) + x])
+                    index = 4 * (y - 1) + x;
+                else if (y < 4 && !appdata->board[4 * (y + 1) + x])
+                    index = 4 * (y + 1) + x;
 
-            appdata->is_win = 1;
-            for(int i=0; i<15;i++)
-                if (appdata->board[i] != i + 1)
+                if (index != -1)
                 {
-                    appdata->is_win = 0;
-                    break;
+                    appdata->board[index] = appdata->board[4 * y + x];
+                    appdata->board[4 * y + x] = 0;
                 }
+
+                // check win
+
+                appdata->is_win = 1;
+                for (int i = 0; i < 15;i++)
+                    if (appdata->board[i] != i + 1)
+                    {
+                        appdata->is_win = 0;
+                        break;
+                    }
+            }
+            break;
+
+        case GESTURE_SWIPE_UP:
+            if (index < 12)
+            {
+                appdata->board[index] = appdata->board[index + 4];
+                appdata->board[index + 4] = 0;
+            }
+            break;
+        case GESTURE_SWIPE_DOWN:
+            if (index > 3)
+            {
+                appdata->board[index] = appdata->board[index - 4];
+                appdata->board[index - 4] = 0;
+            }
+            break;
+        case GESTURE_SWIPE_LEFT:
+            if (((index + 1) % 4) != 0)
+            {
+                appdata->board[index] = appdata->board[index + 1];
+                appdata->board[index + 1] = 0;
+            }
+            break;
+        case GESTURE_SWIPE_RIGHT:
+            if ((index % 4) != 0)
+            {
+                appdata->board[index] = appdata->board[index - 1];
+                appdata->board[index - 1] = 0;
+            }
+            break;
         }
     }
-
     draw_screen();
     repaint_screen_lines(1, 176);
     return 0;
