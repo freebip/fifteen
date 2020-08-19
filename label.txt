@@ -1,1 +1,6 @@
-fifteen
+Fifteen
+RU  Пятнашки
+IT  Quindici
+ES  Quince
+FR  Quinze
+DE  Fünfzehn

@@ -29,12 +29,12 @@ void init_board()
         appdata->board[j] = appdata->board[i];
         appdata->board[i] = tmp;
     }
-    appdata->is_win = 0;
 }
 
 
 void keypress_screen()
 {
+    ElfWriteSettings(ELF_INDEX_SELF, appdata->board, 0, sizeof(appdata->board));
     show_menu_animate(appdata->ret_f, (unsigned int)show_screen, ANIMATE_RIGHT);
 };
 
@@ -120,7 +120,15 @@ void show_screen(void* p)
     else
         appdata->ret_f = show_watchface;
 
-    init_board();
+    ElfReadSettings(ELF_INDEX_SELF, appdata->board, 0, sizeof(appdata->board));
+    int check_summ = 0;
+    for (int i = 0; i < 16; i++)
+        check_summ += appdata->board[i];
+
+    if (check_summ != 120)
+        init_board();
+
+    appdata->is_win = 0;
 
     draw_screen();
 
@@ -147,6 +155,7 @@ int dispatch_screen(void* p)
     if (appdata->is_win)
     {
         init_board();
+        appdata->is_win = 0;
     }
     else
     {
