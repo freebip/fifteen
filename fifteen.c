@@ -31,7 +31,6 @@ void init_board()
     }
 }
 
-
 void keypress_screen()
 {
     ElfWriteSettings(ELF_INDEX_SELF, appdata->board, 0, sizeof(appdata->board));
@@ -185,15 +184,6 @@ int dispatch_screen(void* p)
                     appdata->board[4 * y + x] = 0;
                 }
 
-                // check win
-
-                appdata->is_win = 1;
-                for (int i = 0; i < 15;i++)
-                    if (appdata->board[i] != i + 1)
-                    {
-                        appdata->is_win = 0;
-                        break;
-                    }
             }
             break;
 
@@ -226,7 +216,21 @@ int dispatch_screen(void* p)
             }
             break;
         }
+
+        // check win
+
+        appdata->is_win = 1;
+        for (int i = 0; i < 15;i++)
+            if (appdata->board[i] != i + 1)
+            {
+                appdata->is_win = 0;
+                break;
+            }
+
     }
+
+
+
     draw_screen();
     repaint_screen_lines(1, 176);
     return 0;
