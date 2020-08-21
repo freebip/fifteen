@@ -19,20 +19,17 @@ unsigned short randint(short max)
 
 int is_board_solving()
 {
-    int summ = 0;
-    int empty_cell_row = 4;
-    for (int i = 0; i < 15; i++)
-    {
-        if (!appdata->board[i])
-            empty_cell_row = i / 4 + 1;
+    int inv = 0;
+    for (int i = 0; i < 16; ++i)
+        if (appdata->board[i])
+            for (int j = 0; j < i; ++j)
+                if (appdata->board[j] > appdata->board[i])
+                    ++inv;
+    for (int i = 0; i < 16; ++i)
+        if (appdata->board[i] == 0)
+            inv += 1 + i / 4;
 
-        for (int j = i + 1; j < 15; j++)
-        {
-            if (appdata->board[i] > appdata->board[j])
-                summ++;
-        }
-    }
-    return (empty_cell_row + summ) % 2 == 0;
+    return inv % 2 == 0;
 }
 
 void init_board()
@@ -288,7 +285,7 @@ void draw_screen()
         }
         else 
         {
-            set_fg_color(COLOR_GREEN);
+            set_fg_color(is_board_solving() ? COLOR_GREEN : COLOR_RED);
             if (i > 3)
                 draw_horizontal_line(y * 44 - 1, 1 + x44_1, x44_1 + 40);
             if (i < 12)
@@ -297,6 +294,8 @@ void draw_screen()
                 draw_vertical_line(x * 44 - 1, 1 + y44_1, y44_1 + 40);
             if ((i-3) % 4)
                 draw_vertical_line(x * 44 + 44, 1 + y44_1, y44_1 + 40);
+
+
         }
     }
 }
