@@ -17,18 +17,40 @@ unsigned short randint(short max)
     return ((appdata->randseed >> 16) * max) >> 16;
 }
 
+int is_board_solving()
+{
+    int summ = 0;
+    int empty_cell_row = 4;
+    for (int i = 0; i < 15; i++)
+    {
+        if (!appdata->board[i])
+            empty_cell_row = i / 4 + 1;
+
+        for (int j = i + 1; j < 15; j++)
+        {
+            if (appdata->board[i] > appdata->board[j])
+                summ++;
+        }
+    }
+    return (empty_cell_row + summ) % 2 == 0;
+}
+
 void init_board()
 {
     for (int i = 0; i < 16; i++)
         appdata->board[i] = i;
 
-    for (int i = 15; i >= 1; i--)
+    do
     {
-        int j = randint(37) % (i + 1);
-        byte tmp = appdata->board[j];
-        appdata->board[j] = appdata->board[i];
-        appdata->board[i] = tmp;
+        for (int i = 15; i >= 1; i--)
+        {
+            int j = randint(37) % (i + 1);
+            byte tmp = appdata->board[j];
+            appdata->board[j] = appdata->board[i];
+            appdata->board[i] = tmp;
+        }
     }
+    while (!is_board_solving());
 }
 
 void keypress_screen()
